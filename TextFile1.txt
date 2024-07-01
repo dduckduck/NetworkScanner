@@ -1,0 +1,100 @@
+# 1. Introducción
+
+El propósito de este proyecto es analizar una red para determinar el número de dispositivos conectados y analizar el tráfico. La solución está desarrollada en el lenguaje C# y está orientada principalmente a la plataforma Windows.
+
+Para alcanzar este objetivo, se plantean varias aproximaciones cuyas características no son excluyentes, sino complementarias. En otras palabras, para obtener resultados fiables es necesario utilizarlas en conjunto. A continuación, se ofrece una breve argumentación.
+
+En primer lugar, se propone realizar una exploración básica de las direcciones IP en un rango dado mediante pings para verificar la respuesta de los dispositivos. Si se recibe una respuesta, se puede inferir la existencia de un dispositivo en esa IP. Aunque este enfoque es rutinario y no presenta grandes desafíos, es importante tener en cuenta que la configuración del firewall puede bloquear los pings ICMP Echo Request, lo que significa que los dispositivos pueden no responder.
+
+Para abordar este problema, se propone realizar una exploración por puertos para identificar servicios activos. Esto implica verificar si hay algún socket escuchando en puertos estándar como 22, 23, 67, o 80, entre otros.
+
+Finalmente, como complemento a las exploraciones anteriores, se plantea realizar un análisis del tráfico de red que llega a la tarjeta de red. Este análisis, aunque no exhaustivo, se centra especialmente en los paquetes de tipo broadcast, como DHCP, DNS y ARP, que indican implícitamente la presencia de más dispositivos en la red.
+
+En resumen, las acciones que se llevarán a cabo son las siguientes:
+- Exploración mediante pings
+- Exploración por puertos
+- Análisis de tráfico
+---
+# 2. Aspectos técnicos básicos
+
+En esta sección se presentan algunos conceptos técnicos relevantes que pueden ayudar a comprender mejor el proyecto.
+
+## 2.1 ICMP (Internet Control Message Protocol)
+**Estándar: RFC 792**
+
+El ICMP forma parte del conjunto de protocolos IP utilizado para el intercambio de información de diagnóstico y control. Los mensajes ICMP se construyen en la capa de red y están encapsulados en una cabecera del protocolo IP. Para este proyecto, es crucial entender que herramientas como ping y traceroute utilizan mensajes "Echo request" y "Echo reply". Al configurar un dispositivo para ignorar los "Echo request", éste no responderá con un "Echo reply" al recibir dicho mensaje.
+
+## 2.2 DHCP (Dynamic Host Configuration Protocol)
+**Estándar: RFC 2131**
+
+**Puertos: 67, 68 (UDP)**
+
+Es un protocolo de red de tipo cliente/servidor utilizado para asignar dinámicamente direcciones IP a los dispositivos nuevos que se conectan. El servidor DHCP gestiona un pool de direcciones y las asigna según la demanda. La interacción completa sigue la secuencia: *discovery (C), offer (S), request (C), acknowledge (S)*. Es importante destacar que el mensaje de *discovery* se difunde a todas las máquinas en la red, lo que permite que los dispositivos obtengan una dirección IP dinámica de manera eficiente.
+
+## 2.3 DNS (Domain Name System)
+**Estándar: RFC 1035**
+
+**Puertos: 53 (UDP/TCP)**
+
+El DNS facilita la traducción de nombres de dominio legibles para los humanos en direcciones IP numéricas utilizadas por los equipos en la red. Las consultas DNS se realizan mediante protocolos UDP o TCP en el puerto 53. En entornos locales, las consultas pueden ser difundidas (broadcast) para alcanzar eficientemente a todos los dispositivos de la red. En respuesta a una consulta DNS, tanto un servidor DNS como dispositivos que tienen la respuesta en su caché pueden responder. Sin embargo, por razones de seguridad, los dispositivos que no son servidores DNS generalmente no responden a estas consultas difundidas.
+
+## 2.4 ARP (Address Resolution Protocol)
+**Estándar: RFC 826**
+
+El ARP es un protocolo utilizado para resolver direcciones IP en direcciones físicas de red (MAC address) en la capa de enlace de datos. Es esencial para la comunicación dentro de una red local. Cuando un dispositivo necesita comunicarse con otro en la misma red y no tiene la dirección MAC del destino en su tabla ARP, usa ARP para enviar una solicitud de difusión (broadcast) preguntando quién tiene la dirección IP correspondiente. El dispositivo con la dirección IP responde, actualizando así su tabla ARP.
+
+---
+
+# 3. Diseño de la solución
+A continuación se presenta la documentación relacionada con el diseño de la solución para el análisis de red. Una forma fácil y trivial consiste en codificar un script. No obstante, se ha optado por la aproximación OOP para 
+proporcionar un estrctura modular y escalable por si el proyecto crece. 
+
+## 3.1 Pseudocodigo
+Para ilustrar mejorar el planteamiento se presentan bloques con pseudocódigo 
+### 3.1.1 Exploración por rango de IP
+```pseudocodigo
+Para cada dirección IP en el rango especificado {
+    Realizar un ping a la dirección IP
+    Si recibo una respuesta {
+        Registrar la dirección IP como activa
+    }
+}
+```
+### 3.1.2 Exploración por puertos estandarizados
+```
+Para cada dirección IP en el rango especificado {
+    Para cada puerto estándar de interés {
+        Intentar conectar al puerto en la dirección IP
+        Si la conexión es exitosa {
+            Registrar el puerto como activo y el servicio que escucha en él
+        }
+    }
+}
+```
+### 3.1.3 Análisis de tráfico
+```
+Para cada paquete recibido {
+    Si es un paquete de tipo broadcast y es de interés (DHCP, DNS, ARP) {
+        Registrar el tipo de paquete y la información relevante
+    }
+}
+```
+## 3.2 UML
+
+
+## Dependencias
+dotnet add package SharpPcap
+sudo apt-get install libpcap-dev
+
+dotnet new sln -n NetworkScanner
+dotnet new classlib -n NetworkScannerLib
+dotnet sln add NetworkScannerLib/NetworkScannerLib.csproj
+ 
+dotnet new xunit -n NetworkScannerLibTests
+dotnet sln add NetworkScannerLibTests/NetworkScannerLibTests.csproj
+
+dotnet new wpf -n AppWpf
+dotnet sln add AppWpf/AppWpf.csproj
+
+
+dotnet add package SharpPcap
