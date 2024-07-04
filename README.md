@@ -14,6 +14,7 @@ Una vez se intercepta el paquete, se procesan las cabeceras del paquete. La estr
 A partir de estas cabeceras se puede obtener el emisor y receptor, el protocolo utilizado y otros datos. 
 
 ## Planteamiento de diseño
+```plaintext
                     +----------------+
                     | NetworkScanner |
                     +----------------+
@@ -30,6 +31,7 @@ A partir de estas cabeceras se puede obtener el emisor y receptor, el protocolo 
 +----------+ +----------+         +------------+
 | IPPacket | | IPPacket |         |  IPPacket  |
 +----------+ +----------+         +------------+
+```
 
 
 La entidad NetworkScanner gestiona las interfaces para la monitorización. Cada interfaz está asociada a un Sniffer, el cual captura paquetes en un hilo dedicado. 
