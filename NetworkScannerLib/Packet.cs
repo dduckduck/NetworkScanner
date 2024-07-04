@@ -71,13 +71,31 @@ namespace NetworkScannerLib
 
             // Convertir DestinationAddress a formato IP legible
             string destinationIP = $"{(DestinationAddress >> 24) & 0xFF}.{(DestinationAddress >> 16) & 0xFF}.{(DestinationAddress >> 8) & 0xFF}.{DestinationAddress & 0xFF}";
+            const int fieldWidth = -20;
+            const int valueWidth = -20;
 
-            return $"Version: {Version}, IHL: {IHL}, Type of Service: {TypeOfService}, " +
-                   $"Total Length: {TotalLength}, Identification: {Identification}, Flags: {Flags}, " +
-                   $"Fragment Offset: {FragmentOffset}, TTL: {TTL}, Protocol: {Protocol}, " +
-                   $"Header Checksum: {HeaderChecksum}, Source Address: {sourceIP}, " +
-                   $"Destination Address: {destinationIP}";
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("IP Packet Information:");
+            sb.AppendLine("-------------------------------------------------");
+            sb.AppendLine($"| {"Field",fieldWidth} | {"Value",valueWidth} |");
+            sb.AppendLine("-------------------------------------------------");
+            sb.AppendLine($"| {"Version",fieldWidth} | {Version,valueWidth} |");
+            sb.AppendLine($"| {"IHL",fieldWidth} | {IHL,valueWidth} |");
+            sb.AppendLine($"| {"Type of Service",fieldWidth} | {TypeOfService,valueWidth} |");
+            sb.AppendLine($"| {"Total Length",fieldWidth} | {TotalLength,valueWidth} |");
+            sb.AppendLine($"| {"Identification",fieldWidth} | {Identification,valueWidth} |");
+            sb.AppendLine($"| {"Flags",fieldWidth} | {Flags,valueWidth} |");
+            sb.AppendLine($"| {"Fragment Offset",fieldWidth} | {FragmentOffset,valueWidth} |");
+            sb.AppendLine($"| {"TTL",fieldWidth} | {TTL,valueWidth} |");
+            sb.AppendLine($"| {"Protocol",fieldWidth} | {Protocol,valueWidth} |");
+            sb.AppendLine($"| {"Header Checksum",fieldWidth} | {HeaderChecksum,valueWidth} |");
+            sb.AppendLine($"| {"Source Address",fieldWidth} | {sourceIP,valueWidth} |");
+            sb.AppendLine($"| {"Destination Address",fieldWidth} | {destinationIP,valueWidth} |");
+            sb.AppendLine("-------------------------------------------------");
+
+            return sb.ToString();
         }
+
 
 
     }

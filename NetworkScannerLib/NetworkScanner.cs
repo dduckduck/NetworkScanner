@@ -33,7 +33,7 @@ namespace NetworkScannerLib
                 throw new InvalidOperationException("Wow! Almost imposible collision ocurred. New randomly generated uid is already registered");
             }
 
-            var data = ExtractAddresses(ref ifc);
+            var data = ExtractAddresses(ref ifc); //IP, Subnet, Mask
             if ((data[0] & data[1] & data[2]) == 0)
             {
                 throw new ArgumentException("Could not obtain a valid ip addresses");

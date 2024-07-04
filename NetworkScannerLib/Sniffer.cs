@@ -11,7 +11,7 @@ namespace NetworkScannerLib
 {
     public class Sniffer
     {
-        private readonly uint BUFFER_SIZE = 4096;
+        private readonly uint BUFFER_SIZE = 65507; //Max size
         public List<IPPacket> CapturedData { get; private set; }
         public Dictionary<uint, IPPacket> HostMap { get; private set; }
 
@@ -26,7 +26,7 @@ namespace NetworkScannerLib
         private bool stopSniffing;
         private object lockObject;
 
-        public Sniffer(uint ip,uint subnet, uint mask)
+        public Sniffer(uint ip, uint subnet, uint mask)
         {
             IpAddr = ip;
             SubnetMask = subnet;
@@ -51,6 +51,7 @@ namespace NetworkScannerLib
 
         ~Sniffer()
         {
+            Console.WriteLine("Captured datagrams {0}", CapturedData.Count);
             if (snifferThread.IsAlive)
             {
                 lock (lockObject)
@@ -65,7 +66,7 @@ namespace NetworkScannerLib
         private void CaptureTraffic()
         {
             byte[] buffer = new byte[BUFFER_SIZE];
-
+            int received = -1;
             while (true)
             {
                 lock (lockObject)
@@ -75,23 +76,25 @@ namespace NetworkScannerLib
                         break;
                     }
                 }
+                try
+                {
+                    received = rawSocket.Receive(buffer);
+                }catch(Exception e)
+                {
+                    Console.WriteLine("Error ocurred while receiving datagram: {0}", e.Message);
+                    received = -1;
+                }
 
-                /* Recibir datos
-                 * Receive es bloqueante, es decir, esperará hasta que llegue algún paquete o hasta que pase timeout
-                 */
-
-                int received = rawSocket.Receive(buffer);
                 if (received > 0)
                 {
                     // Procesar el paquete recibido
                     IPPacket iPPacket = new IPPacket(buffer);
-                    Console.WriteLine($"{ConvertIpAddrToString(iPPacket.SourceAddress)} -> {ConvertIpAddrToString(iPPacket.DestinationAddress)}");
+                    Console.WriteLine($"{ConvertIpAddrToString(iPPacket.SourceAddress)}  -> {ConvertIpAddrToString(iPPacket.DestinationAddress)}");
                     if (!HostMap.ContainsKey(iPPacket.SourceAddress))
                     {
                         HostMap[iPPacket.SourceAddress] = iPPacket;
                     }
                     CapturedData.Add(iPPacket);
-
                 }
             }
         }
@@ -166,9 +169,12 @@ namespace NetworkScannerLib
                 lock (lockObject)
                 {
                     stopSniffing = true;
+                    Console.WriteLine("Snifer stop sniffing!");
                 }
+                Console.WriteLine("Waiting for sniffer thread to finish...");
+                snifferThread.Join();
             }
-          
+
         }
     }
 }
